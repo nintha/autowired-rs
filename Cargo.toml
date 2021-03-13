@@ -3,5 +3,8 @@ name = "autowired"
 version = "0.0.0"
 authors = ["ninthakeey <ninthakeey@hotmail.com>"]
 edition = "2018"
+description = "Rust dependency injection [WIP]"
+keywords = ["injection"]
+license = "Apache-2.0"
 
 [dependencies]
