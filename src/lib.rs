@@ -34,6 +34,7 @@ pub trait Component: Any + 'static + Send + Sync {
     /// create a new component instance
     fn new_instance() -> Result<Arc<Self>, Box<dyn Error>>;
 
+    /// call `new_instance` to create new component, then add it into a global map
     fn register() where Self: std::marker::Sized {
         let name = type_name::<Self>();
         // 在注册组件的时候进行加锁，防止出现多次初始化
@@ -57,6 +58,7 @@ pub trait Component: Any + 'static + Send + Sync {
         }
     }
 
+    /// run code after component register
     fn after_register(&self) {}
 }
 
@@ -141,7 +143,7 @@ mod tests {
 
     #[test]
     fn register_bar() {
-        let bar = Autowired::<Bar>::new();
+        let bar: Autowired<Bar> = Autowired::new();
 
         assert_eq!(String::default(), bar.name);
         assert_eq!(u32::default(), bar.age);
