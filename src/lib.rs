@@ -5,11 +5,8 @@ use std::any::type_name;
 use std::ops::Deref;
 use once_cell::sync::OnceCell;
 use std::sync::Mutex;
-use std::future::Future;
-use std::pin::Pin;
 use std::error::Error;
-use futures_lite::future::block_on;
-use autowired_derive::Autowired;
+pub use autowired_derive::Component;
 
 fn component_mutex() -> &'static Mutex<u64> {
     static INSTANCE: OnceCell<Mutex<u64>> = OnceCell::new();
@@ -35,7 +32,7 @@ pub fn exist_component<T: Component>() -> bool {
 
 pub trait Component: Any + 'static + Send + Sync {
     /// create a new component instance
-    fn new_instance() -> Pin<Box<dyn Future<Output=Result<Arc<Self>, Box<dyn Error>>>>>;
+    fn new_instance() -> Result<Arc<Self>, Box<dyn Error>>;
 
     fn register() where Self: std::marker::Sized {
         let name = type_name::<Self>();
@@ -45,7 +42,7 @@ pub trait Component: Any + 'static + Send + Sync {
                 return;
             }
 
-            let component: Arc<Self> = match block_on(Self::new_instance()) {
+            let component: Arc<Self> = match Self::new_instance() {
                 Ok(v) => v,
                 Err(e) => {
                     log::error!("[Component] register failure, {}", e);
@@ -122,19 +119,17 @@ mod tests {
     }
 
     impl Component for Foo {
-        fn new_instance() -> Pin<Box<dyn Future<Output=Result<Arc<Self>, Box<dyn Error>>>>> {
-            Box::pin(async {
-                Ok(Arc::new(Foo {
-                    value: TEST_STRING.to_string(),
-                }))
-            })
+        fn new_instance() -> Result<Arc<Self>, Box<dyn Error>> {
+            Ok(Arc::new(Foo {
+                value: TEST_STRING.to_string(),
+            }))
         }
         fn after_register(&self) {
             atomic_count().fetch_add(1, Ordering::SeqCst);
         }
     }
 
-    #[derive(Default, Autowired)]
+    #[derive(Default, Component)]
     struct Bar {
         name: String,
         age: u32,

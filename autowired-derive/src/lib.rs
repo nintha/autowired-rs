@@ -5,19 +5,17 @@ extern crate quote;
 
 use proc_macro::TokenStream;
 
-#[proc_macro_derive(Autowired)]
-pub fn autowired_derive(input: TokenStream) -> TokenStream {
-    impl_autowired(&syn::parse(input).unwrap())
+#[proc_macro_derive(Component)]
+pub fn component_derive(input: TokenStream) -> TokenStream {
+    impl_component(&syn::parse(input).unwrap())
 }
 
-fn impl_autowired(ast: &syn::DeriveInput) -> TokenStream {
+fn impl_component(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Component for #name {
-            fn new_instance() -> Pin<Box<dyn Future<Output=Result<Arc<Self>, Box<dyn Error>>>>> {
-                Box::pin(async {
-                    Ok(Arc::new(Default::default()))
-                })
+            fn new_instance() -> Result<Arc<Self>, Box<dyn Error>> {
+               Ok(Arc::new(Default::default()))
             }
         }
     };
