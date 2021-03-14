@@ -8,7 +8,7 @@ keywords = ["injection"]
 license = "Apache-2.0"
 
 [dependencies]
-autowired-derive = { path = "./autowired-derive" }
+autowired-derive = { path = "./autowired-derive", version = "0.1.0" }
 
 once_cell = "1.4"
 dashmap = "4"

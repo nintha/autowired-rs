@@ -58,10 +58,6 @@ pub trait Component: Any + 'static + Send + Sync {
     }
 
     fn after_register(&self) {}
-
-    fn check_health(&self) -> bool {
-        false
-    }
 }
 
 /// lazy autowired
@@ -100,9 +96,7 @@ impl<T: Component> Default for Autowired<T> {
 mod tests {
     use crate::{Component, Autowired};
     use std::sync::Arc;
-    use std::pin::Pin;
     use std::error::Error;
-    use std::future::Future;
     use std::sync::atomic::{AtomicU32, Ordering};
     use once_cell::sync::OnceCell;
 
