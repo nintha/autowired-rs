@@ -34,30 +34,6 @@ pub trait Component: Any + 'static + Send + Sync {
     /// create a new component instance
     fn new_instance() -> Result<Arc<Self>, Box<dyn Error>>;
 
-    /// call `new_instance` to create new component, then add it into a global map
-    fn register() where Self: std::marker::Sized {
-        let name = type_name::<Self>();
-        // 在注册组件的时候进行加锁，防止出现多次初始化
-        if let Ok(mut count) = component_mutex().lock() {
-            if component_dashmap().contains_key(name) {
-                return;
-            }
-
-            let component: Arc<Self> = match Self::new_instance() {
-                Ok(v) => v,
-                Err(e) => {
-                    log::error!("[Component] register failure, {}", e);
-                    return;
-                }
-            };
-            component_dashmap().insert(name.to_string(), component.clone());
-            *count += 1;
-
-            log::debug!("[Component] register, name={}", name);
-            component.after_register();
-        }
-    }
-
     /// run code after component register
     fn after_register(&self) {}
 }
@@ -79,7 +55,7 @@ impl<T: Component> Deref for Autowired<T> {
     fn deref(&self) -> &Self::Target {
         self.inner.get_or_init(|| {
             if !exist_component::<T>() {
-                T::register()
+                init_and_register::<T>();
             }
             get_component::<T>().unwrap_or_else(||
                 panic!(format!("[Autowired] not found component {}", type_name::<T>()))
@@ -92,6 +68,38 @@ impl<T: Component> Default for Autowired<T> {
     fn default() -> Self {
         Autowired::new()
     }
+}
+
+fn init_and_register<T: Component>() -> bool {
+    register_with(|| T::new_instance().ok())
+}
+
+/// add component into a global map
+/// return false if component has already existed or `constructor` return `None`
+pub fn register_with<T: Component>(constructor: impl FnOnce() -> Option<Arc<T>>) -> bool {
+    let name = type_name::<T>();
+    if let Ok(mut count) = component_mutex().lock() {
+        if component_dashmap().contains_key(name) {
+            return false;
+        }
+
+        let component = match constructor() {
+            None => return false,
+            Some(c) => c,
+        };
+        component_dashmap().insert(name.to_string(), component.clone());
+        *count += 1;
+
+        log::debug!("[Component] register, name={}", name);
+        component.after_register();
+    }
+    true
+}
+
+/// add component into a global map
+/// return false if component has already existed
+pub fn register<T: Component>(component: Arc<T>) -> bool {
+    register_with(|| Some(component))
 }
 
 #[cfg(test)]
