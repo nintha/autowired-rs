@@ -42,6 +42,7 @@ impl Component for Foo {
 }
 
 fn main() {
+    // create `foo` via new_instance
     let foo = Autowired::<Foo>::new();
 
     assert_eq!("TEST_STRING", foo.value);
