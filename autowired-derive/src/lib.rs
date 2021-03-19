@@ -14,7 +14,9 @@ fn impl_component(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let gen = quote! {
         impl Component for #name {
-            fn new_instance() -> Result<Arc<Self>, Box<dyn Error>> {
+            type Error = Box<dyn std::error::Error + Send + Sync>;
+
+            fn new_instance() -> Result<Arc<Self>, Self::Error> {
                Ok(Arc::new(Default::default()))
             }
         }

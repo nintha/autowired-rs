@@ -5,7 +5,6 @@ use std::any::type_name;
 use std::ops::Deref;
 use once_cell::sync::OnceCell;
 use std::sync::Mutex;
-use std::error::Error;
 pub use autowired_derive::Component;
 
 fn component_mutex() -> &'static Mutex<u64> {
@@ -31,8 +30,10 @@ pub fn exist_component<T: Component>() -> bool {
 }
 
 pub trait Component: Any + 'static + Send + Sync {
+    type Error: Sync + Send;
+
     /// create a new component instance
-    fn new_instance() -> Result<Arc<Self>, Box<dyn Error>>;
+    fn new_instance() -> Result<Arc<Self>, Self::Error>;
 
     /// run code after component register
     fn after_register(&self) {}
@@ -106,7 +107,6 @@ pub fn register<T: Component>(component: Arc<T>) -> bool {
 mod tests {
     use crate::{Component, Autowired};
     use std::sync::Arc;
-    use std::error::Error;
     use std::sync::atomic::{AtomicU32, Ordering};
     use once_cell::sync::OnceCell;
 
@@ -123,7 +123,9 @@ mod tests {
     }
 
     impl Component for Foo {
-        fn new_instance() -> Result<Arc<Self>, Box<dyn Error>> {
+        type Error = ();
+
+        fn new_instance() -> Result<Arc<Self>, Self::Error> {
             Ok(Arc::new(Foo {
                 value: TEST_STRING.to_string(),
             }))

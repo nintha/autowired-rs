@@ -34,9 +34,11 @@ struct Foo {
 }
 
 impl Component for Foo {
-    fn new_instance() -> Result<Arc<Self>, Box<dyn Error>> {
+    type Error = ();
+
+    fn new_instance() -> Result<Arc<Self>, Self::Error> {
         Ok(Arc::new(Foo {
-            value: "TEST_STRING".to_string(),
+            value: TEST_STRING.to_string(),
         }))
     }
 }
