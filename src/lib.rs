@@ -5,7 +5,11 @@ use std::any::type_name;
 use std::ops::Deref;
 use once_cell::sync::OnceCell;
 use std::sync::Mutex;
-pub use autowired_derive::Component;
+
+pub use autowired_derive::*;
+pub use bean::Bean;
+
+mod bean;
 
 fn component_mutex() -> &'static Mutex<u64> {
     static INSTANCE: OnceCell<Mutex<u64>> = OnceCell::new();
@@ -30,13 +34,9 @@ pub fn exist_component<T: Component>() -> bool {
 }
 
 pub trait Component: Any + 'static + Send + Sync {
-    type Error: Sync + Send;
-
+    type Error: Send + Sync;
     /// create a new component instance
     fn new_instance() -> Result<Arc<Self>, Self::Error>;
-
-    /// run code after component register
-    fn after_register(&self) {}
 }
 
 /// lazy autowired
@@ -92,7 +92,6 @@ pub fn register_with<T: Component>(constructor: impl FnOnce() -> Option<Arc<T>>)
         *count += 1;
 
         log::debug!("[Component] register, name={}", name);
-        component.after_register();
     }
     true
 }
@@ -103,59 +102,25 @@ pub fn register<T: Component>(component: Arc<T>) -> bool {
     register_with(|| Some(component))
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{Component, Autowired};
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicU32, Ordering};
-    use once_cell::sync::OnceCell;
-
-    const TEST_STRING: &str = "1234567890";
-
-    fn atomic_count() -> &'static AtomicU32 {
-        static INSTANCE: OnceCell<AtomicU32> = OnceCell::new();
-        INSTANCE.get_or_init(Default::default)
-    }
-
-    #[derive(Default)]
-    struct Foo {
-        value: String,
-    }
-
-    impl Component for Foo {
-        type Error = ();
-
-        fn new_instance() -> Result<Arc<Self>, Self::Error> {
-            Ok(Arc::new(Foo {
-                value: TEST_STRING.to_string(),
-            }))
+/// register with type name and instance
+fn register_with_type_name(type_name: String, component: Arc<dyn Any + 'static + Send + Sync>) -> bool {
+    let name = &type_name;
+    if let Ok(mut count) = component_mutex().lock() {
+        if component_dashmap().contains_key(name) {
+            return false;
         }
-        fn after_register(&self) {
-            atomic_count().fetch_add(1, Ordering::SeqCst);
-        }
+
+        component_dashmap().insert(name.to_string(), component.clone());
+        *count += 1;
+
+        log::debug!("[Component] register, name={}", name);
     }
+    true
+}
 
-    #[derive(Default, Component)]
-    struct Bar {
-        name: String,
-        age: u32,
-    }
-
-    #[test]
-    fn register_foo() {
-        assert_eq!(0, atomic_count().load(Ordering::SeqCst));
-
-        let foo = Autowired::<Foo>::new();
-
-        assert_eq!(TEST_STRING, foo.value);
-        assert_eq!(1, atomic_count().load(Ordering::SeqCst));
-    }
-
-    #[test]
-    fn register_bar() {
-        let bar: Autowired<Bar> = Autowired::new();
-
-        assert_eq!(String::default(), bar.name);
-        assert_eq!(u32::default(), bar.age);
+/// register component which derives `Bean`
+pub fn setup_submitted_beans(){
+    for bean in inventory::iter::<Bean> {
+        register_with_type_name(bean.type_name.clone(), bean.component.clone());
     }
 }

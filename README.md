@@ -3,7 +3,7 @@
 ![crates.io](https://img.shields.io/crates/v/autowired.svg)
 ![docs.rs](https://docs.rs/autowired/badge.svg)
 
-Rust dependency injection project
+Rust dependency injection project, inspired by `Spring IOC`.
 
 ## Usage
 
