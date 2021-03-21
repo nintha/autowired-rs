@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 pub use autowired_derive::*;
 pub use bean::Bean;
+pub use inventory::submit;
 
 mod bean;
 

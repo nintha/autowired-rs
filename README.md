@@ -1,9 +1,16 @@
 # Autowired
 
-![crates.io](https://img.shields.io/crates/v/autowired.svg)
-![docs.rs](https://docs.rs/autowired/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/autowired.svg)](https://crates.io/crates/autowired)
+[![docs.rs](https://docs.rs/autowired/badge.svg)](https://docs.rs/autowired)
 
 Rust dependency injection project, inspired by `Spring IOC`.
+
+## Add Dependency
+
+```toml
+[dependencies]
+autowired="0.1"
+```
 
 ## Usage
 
@@ -48,5 +55,29 @@ fn main() {
     let foo = Autowired::<Foo>::new();
 
     assert_eq!("TEST_STRING", foo.value);
+}
+```
+
+## Central registration in the beginning of the program
+
+By default, components are registered lazily. 
+If you need to register components in advance at the beginning of the program, 
+you can refer to this example:
+
+```rust
+use autowired::{Component, Bean, setup_submitted_beans};
+
+#[derive(Default, Component, Bean)]
+struct Foo;
+
+#[derive(Default, Component, Bean)]
+struct Bar;
+
+fn main() {
+    // register components which derives `Bean`
+    setup_submitted_beans();
+
+    assert!(autowired::exist_component::<Foo>());
+    assert!(autowired::exist_component::<Bar>());
 }
 ```

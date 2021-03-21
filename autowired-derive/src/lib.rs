@@ -30,7 +30,7 @@ pub fn bean_derive(input: TokenStream) -> TokenStream {
     fn impl_component(ast: &syn::DeriveInput) -> TokenStream {
         let name = &ast.ident;
         let gen = quote! {
-            inventory::submit! {
+            autowired::submit! {
                 autowired::Bean::new_unchecked::<#name>()
             }
         };
