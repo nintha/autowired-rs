@@ -60,7 +60,7 @@ impl<T: Component> Deref for Autowired<T> {
                 init_and_register::<T>();
             }
             get_component::<T>().unwrap_or_else(||
-                panic!(format!("[Autowired] not found component {}", type_name::<T>()))
+                panic!("[Autowired] not found component {}", type_name::<T>())
             )
         })
     }
@@ -73,7 +73,7 @@ impl<T: Component> Default for Autowired<T> {
 }
 
 fn init_and_register<T: Component>() -> bool {
-    register_with(|| T::new_instance().ok())
+    register_with(|| T::new_instance().ok().map(Into::<Arc<T>>::into))
 }
 
 /// add component into a global map
@@ -122,6 +122,6 @@ fn register_with_type_name(type_name: String, component: Arc<dyn Any + 'static +
 /// register component which derives `Bean`
 pub fn setup_submitted_beans(){
     for bean in inventory::iter::<Bean> {
-        register_with_type_name(bean.type_name.clone(), bean.component.clone());
+        register_with_type_name(bean.type_name.clone(), (bean.provider)());
     }
 }

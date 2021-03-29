@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use autowired::{Component, Bean, setup_submitted_beans};
+use autowired::{Component, Bean, setup_submitted_beans, bean};
 
 #[allow(dead_code)]
 #[derive(Bean)]
@@ -18,10 +18,15 @@ impl Component for Foo {
 }
 
 #[allow(dead_code)]
-#[derive(Default, Component, Bean)]
+#[derive(Default, Component)]
 struct Bar {
     name: Arc<String>,
     age: u32,
+}
+
+#[bean]
+fn build_bar() -> Bar {
+    Bar::default()
 }
 
 #[test]

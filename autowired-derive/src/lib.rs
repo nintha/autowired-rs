@@ -1,9 +1,6 @@
-extern crate proc_macro;
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
+use quote::quote;
 use proc_macro::TokenStream;
+use syn::{ItemFn};
 
 #[proc_macro_derive(Component)]
 pub fn component_derive(input: TokenStream) -> TokenStream {
@@ -13,8 +10,8 @@ pub fn component_derive(input: TokenStream) -> TokenStream {
             impl Component for #name {
                 type Error = Box<dyn std::error::Error + Send + Sync>;
 
-                fn new_instance() -> Result<Arc<Self>, Self::Error> {
-                   Ok(Arc::new(Default::default()))
+                fn new_instance() -> Result<std::sync::Arc<Self>, Self::Error> {
+                   Ok(std::sync::Arc::new(Default::default()))
                 }
             }
         };
@@ -38,5 +35,26 @@ pub fn bean_derive(input: TokenStream) -> TokenStream {
     }
 
     impl_component(&syn::parse(input).unwrap())
+}
+
+#[proc_macro_attribute]
+pub fn bean(_: TokenStream, input: TokenStream) -> TokenStream {
+    let func = syn::parse_macro_input!(input as ItemFn);
+
+    let block = &func.block;
+    let vis = &func.vis;
+    let name = &func.sig.ident;
+    let output = &func.sig.output;
+
+    let gen = quote!{
+        #vis fn #name() #output {
+            #block
+        }
+
+        autowired::submit! {
+            autowired::Bean::from_fn(#name)
+        }
+    };
+    gen.into()
 }
 
