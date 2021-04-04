@@ -41,9 +41,7 @@ struct Foo {
 }
 
 impl Component for Foo {
-    type Error = ();
-
-    fn new_instance() -> Result<Arc<Self>, Self::Error> {
+    fn new_instance() -> Option<Self> {
         Ok(Arc::new(Foo {
             value: TEST_STRING.to_string(),
         }))
