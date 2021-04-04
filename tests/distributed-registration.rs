@@ -8,12 +8,10 @@ struct Foo {
 }
 
 impl Component for Foo {
-    type Error = ();
-
-    fn new_instance() -> Result<Arc<Self>, Self::Error> {
-        Ok(Arc::new(Foo {
+    fn new_instance() -> Option<Self> {
+        Some(Foo {
             value: "TEST_STRING".to_string(),
-        }))
+        })
     }
 }
 

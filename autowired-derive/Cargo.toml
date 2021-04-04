@@ -1,6 +1,6 @@
 [package]
 name = "autowired-derive"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["ninthakeey <ninthakeey@hotmail.com>"]
 edition = "2018"
 description = "Autowired project derive macro support"

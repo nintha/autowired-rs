@@ -1,6 +1,6 @@
 [package]
 name = "autowired"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["ninthakeey <ninthakeey@hotmail.com>"]
 edition = "2018"
 description = "Rust dependency injection"
@@ -10,7 +10,7 @@ repository = "https://github.com/nintha/autowired-rs"
 homepage = "https://github.com/nintha/autowired-rs"
 
 [dependencies]
-autowired-derive = { path = "./autowired-derive", version = "0.1.3" }
+autowired-derive = { path = "./autowired-derive", version = "0.1.4" }
 
 inventory = "0.1.10"
 once_cell = "1.4"

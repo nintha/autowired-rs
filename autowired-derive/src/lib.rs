@@ -8,10 +8,8 @@ pub fn component_derive(input: TokenStream) -> TokenStream {
         let name = &ast.ident;
         let gen = quote! {
             impl Component for #name {
-                type Error = Box<dyn std::error::Error + Send + Sync>;
-
-                fn new_instance() -> Result<std::sync::Arc<Self>, Self::Error> {
-                   Ok(std::sync::Arc::new(Default::default()))
+                fn new_instance() -> Option<Self> {
+                   Some(Default::default())
                 }
             }
         };

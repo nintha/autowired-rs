@@ -11,7 +11,7 @@ impl Bean {
     pub fn new_unchecked<C: Component>() -> Self {
         Self {
             type_name: std::any::type_name::<C>().to_string(),
-            provider:Box::new( move || C::new_instance().ok().unwrap()) ,
+            provider:Box::new( move || Arc::new(C::new_instance().unwrap())) ,
         }
     }
 

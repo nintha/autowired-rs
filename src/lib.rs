@@ -35,9 +35,7 @@ pub fn exist_component<T: Component>() -> bool {
 }
 
 pub trait Component: Any + 'static + Send + Sync {
-    type Error: Send + Sync;
-    /// create a new component instance
-    fn new_instance() -> Result<Arc<Self>, Self::Error>;
+    fn new_instance() -> Option<Self> where Self: Sized;
 }
 
 /// lazy autowired
@@ -73,7 +71,7 @@ impl<T: Component> Default for Autowired<T> {
 }
 
 fn init_and_register<T: Component>() -> bool {
-    register_with(|| T::new_instance().ok().map(Into::<Arc<T>>::into))
+    register_with(|| T::new_instance().map(Into::<Arc<T>>::into))
 }
 
 /// add component into a global map
@@ -120,7 +118,7 @@ fn register_with_type_name(type_name: String, component: Arc<dyn Any + 'static +
 }
 
 /// register component which derives `Bean`
-pub fn setup_submitted_beans(){
+pub fn setup_submitted_beans() {
     for bean in inventory::iter::<Bean> {
         register_with_type_name(bean.type_name.clone(), (bean.provider)());
     }
