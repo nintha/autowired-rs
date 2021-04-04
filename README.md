@@ -24,6 +24,9 @@ struct Bar {
 }
 
 fn main() {
+    // central registration in the beginning of the program
+    setup_submitted_beans();
+
     // create `bar` via Default::default
     let bar: Autowired<Bar> = Autowired::new();
 
@@ -35,47 +38,60 @@ fn main() {
 Define custom component initialization logic
 
 ```rust
-#[derive(Default)]
-struct Foo {
-    value: String,
-}
+struct Goo { pub list: Vec<String> }
 
-impl Component for Foo {
-    fn new_instance() -> Option<Self> {
-        Ok(Arc::new(Foo {
-            value: TEST_STRING.to_string(),
-        }))
-    }
+#[autowired::bean]
+fn build_goo() -> Goo {
+    Goo { list: vec!["hello".to_string()] }
 }
 
 fn main() {
-    // create `foo` via new_instance
-    let foo = Autowired::<Foo>::new();
+    // central registration in the beginning of the program
+    setup_submitted_beans();
 
-    assert_eq!("TEST_STRING", foo.value);
+    let goo = Autowired::<Goo>::new();
+    assert_eq!("hello", goo.list[0])
 }
 ```
 
-## Central registration in the beginning of the program
+## Lazy components
 
-By default, components are registered lazily. 
-If you need to register components in advance at the beginning of the program, 
-you can refer to this example:
+By default, components are registered with `setup_submitted_beans`. 
+If you need to register components lazily, you can refer to this example:
 
 ```rust
-use autowired::{Component, Bean, setup_submitted_beans};
+use std::sync::Arc;
+use autowired::{ LazyComponent, setup_submitted_beans, bean, Autowired};
 
-#[derive(Default, Component, Bean)]
-struct Foo;
+#[allow(dead_code)]
+#[derive(Default, LazyComponent)]
+struct Bar {
+    name: Arc<String>,
+    age: u32,
+}
 
-#[derive(Default, Component, Bean)]
-struct Bar;
+#[allow(dead_code)]
+struct Goo { pub list: Vec<String> }
 
-fn main() {
-    // register components which derives `Bean`
+#[bean(lazy)]
+fn build_goo() -> Goo {
+    Goo { list: vec!["hello".to_string()] }
+}
+
+#[test]
+fn lazy() {
     setup_submitted_beans();
 
-    assert!(autowired::exist_component::<Foo>());
+    assert!(!autowired::exist_component::<Bar>());
+    assert!(!autowired::exist_component::<Goo>());
+
+    let bar = Autowired::<Bar>::new();
+    assert!( bar.name.is_empty());
+
+    let goo = Autowired::<Goo>::new();
+    assert_eq!("hello", goo.list[0]);
+
     assert!(autowired::exist_component::<Bar>());
+    assert!(autowired::exist_component::<Goo>());
 }
 ```

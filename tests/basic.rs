@@ -1,7 +1,6 @@
 use std::sync::atomic::{AtomicU32, Ordering};
 use once_cell::sync::OnceCell;
-use autowired::{Component, Autowired};
-
+use autowired::{Component, LazyComponent, Autowired, setup_submitted_beans};
 
 const TEST_STRING: &str = "1234567890";
 
@@ -26,7 +25,11 @@ impl Component for Foo {
     }
 }
 
-#[derive(Default, Component)]
+autowired::submit! {
+    autowired::Bean::new_unchecked_lazy::<Foo>()
+}
+
+#[derive(Default, LazyComponent)]
 struct Bar {
     name: String,
     age: u32,
@@ -34,6 +37,7 @@ struct Bar {
 
 #[test]
 fn register_foo() {
+    setup_submitted_beans();
     assert_eq!(0, atomic_count().load(Ordering::SeqCst));
 
     let foo = Autowired::<Foo>::new();
@@ -44,6 +48,7 @@ fn register_foo() {
 
 #[test]
 fn register_bar() {
+    setup_submitted_beans();
     let bar: Autowired<Bar> = Autowired::new();
 
     assert_eq!(String::default(), bar.name);
