@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
 use once_cell::sync::OnceCell;
 use autowired::{Component, Autowired};
@@ -17,14 +16,13 @@ struct Foo {
 }
 
 impl Component for Foo {
-    type Error = anyhow::Error;
 
-    fn new_instance() -> Result<Arc<Self>, Self::Error> {
-        let foo = Arc::new(Foo {
+    fn new_instance() -> Option<Self> {
+        let foo =Foo {
             value: TEST_STRING.to_string(),
-        });
+        };
         atomic_count().fetch_add(1, Ordering::SeqCst);
-        Ok(foo)
+        Some(foo)
     }
 }
 
