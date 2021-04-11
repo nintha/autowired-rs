@@ -72,7 +72,7 @@ impl<T: Send + Sync + 'static> Deref for Autowired<T> {
     }
 }
 
-impl<T: Component> Default for Autowired<T> {
+impl<T> Default for Autowired<T> {
     fn default() -> Self {
         Autowired::new()
     }
