@@ -134,3 +134,8 @@ pub fn setup_submitted_beans() {
         bean_dashmap().insert(bean.type_name.clone(), bean.clone());
     }
 }
+
+/// get list of submitted bean name
+pub fn list_bean_names() -> Vec<String> {
+    bean_dashmap().iter().map(|x| x.type_name.clone()).collect()
+}

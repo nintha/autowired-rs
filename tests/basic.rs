@@ -55,3 +55,18 @@ fn register_bar() {
     assert_eq!(u32::default(), bar.age);
 }
 
+#[test]
+fn list_bean_names() {
+    setup_submitted_beans();
+
+    let names = autowired::list_bean_names();
+
+    let foo_name = std::any::type_name::<Foo>().to_string();
+    assert!(names.contains(&foo_name));
+
+    let bar_name = std::any::type_name::<Bar>().to_string();
+    assert!(names.contains(&bar_name));
+
+    assert!(!names.contains(&"hello".to_owned()));
+}
+
