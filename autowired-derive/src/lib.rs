@@ -37,6 +37,9 @@ pub fn lazy_component_derive(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
+/// Full feature example: `#[bean(lazy, option)]`
+/// - lazy: submit bean when it be used
+/// - option: maybe constructor will return `None`
 #[proc_macro_attribute]
 pub fn bean(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = syn::parse_macro_input!(args as AttributeArgs);
