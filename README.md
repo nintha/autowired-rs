@@ -95,3 +95,46 @@ fn lazy() {
     assert!(autowired::exist_component::<Goo>());
 }
 ```
+
+## Option components
+
+Functional bean constructor can return `Option` with attribute `#[bean(option)]`.
+
+if return value is `None`, this bean will not be submitted.
+
+if you like, this feature can work with lazy components, `#[bean(option, lazy)]`.
+
+```rust
+#[allow(dead_code)]
+struct Bar {
+    name: String,
+}
+
+/// return `None`, this bean will not be submitted
+#[bean(option)]
+fn build_bar_none() -> Option<Bar> {
+    None
+}
+
+#[allow(dead_code)]
+struct Goo {
+    pub list: Vec<String>,
+}
+
+#[bean(option)]
+fn build_goo_some() -> Option<Goo> {
+    Some(Goo { list: vec!["hello".to_string()] })
+}
+
+#[test]
+fn option() {
+    setup_submitted_beans();
+
+    assert!(!autowired::exist_component::<Bar>());
+    assert!(autowired::exist_component::<Goo>());
+
+    let goo = Autowired::<Goo>::new();
+    assert_eq!("hello", goo.list[0]);
+}
+
+```

@@ -62,7 +62,9 @@ impl<T: Send + Sync + 'static> Deref for Autowired<T> {
             if !exist_component::<T>() {
                 let name = type_name::<T>();
                 if let Some(bean) = bean_dashmap().get(name) {
-                    register_with_type_name(name.to_owned(), (bean.provider)());
+                    if let Some(component) = (bean.provider)(){
+                        register_with_type_name(name.to_owned(), component);
+                    }
                 }
             }
             get_component::<T>().unwrap_or_else(||
@@ -129,7 +131,9 @@ fn register_with_type_name(type_name: String, component: Arc<dyn Any + 'static +
 pub fn setup_submitted_beans() {
     for bean in inventory::iter::<Bean> {
         if !bean.lazy {
-            register_with_type_name(bean.type_name.clone(), (bean.provider)());
+            if let Some(component) = (bean.provider)(){
+                register_with_type_name(bean.type_name.clone(), component);
+            }
         }
         bean_dashmap().insert(bean.type_name.clone(), bean.clone());
     }

@@ -40,13 +40,20 @@ pub fn lazy_component_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn bean(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = syn::parse_macro_input!(args as AttributeArgs);
-    let is_lazy = args.get(0).map(|x| {
-        if let NestedMeta::Meta(nv) = x {
-            return nv.path().is_ident("lazy");
-        } else {
-            return false;
+
+    let mut is_lazy = false;
+    let mut is_option = false;
+    for meta in args {
+        if let NestedMeta::Meta(nv) = meta {
+            if nv.path().is_ident("lazy") {
+                is_lazy = true;
+            }
+
+            if nv.path().is_ident("option") {
+                is_option = true;
+            }
         }
-    }).unwrap_or_default();
+    }
 
     let func = syn::parse_macro_input!(input as ItemFn);
 
@@ -55,10 +62,10 @@ pub fn bean(args: TokenStream, input: TokenStream) -> TokenStream {
     let name = &func.sig.ident;
     let output = &func.sig.output;
 
-    let submit_method = if is_lazy {
-        quote! { autowired::Bean::from_fn_lazy(#name) }
+    let submit_method = if is_option {
+        quote! { autowired::Bean::from_fn_return_option(#name, #is_lazy) }
     } else {
-        quote! { autowired::Bean::from_fn(#name) }
+        quote! { autowired::Bean::from_fn(#name, #is_lazy) }
     };
 
     let gen = quote! {
