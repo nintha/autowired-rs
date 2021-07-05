@@ -57,7 +57,7 @@ fn main() {
 ## Lazy components
 
 By default, components are registered with `setup_submitted_beans`. 
-If you need to register components lazily, you can refer to this example:
+Use `#[bean(lazy)]` to  register components lazily. The lazy components will be registered when be used.
 
 ```rust
 use std::sync::Arc;
